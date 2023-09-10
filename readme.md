@@ -15,3 +15,9 @@ Enter the following details in the config.json file.
   "records": ["CLOUDFLARE_DOMAIN_RECORD_ID1", "CLOUDFLARE_DOMAIN_RECORD_ID2"]
 }
 ```
+# Crontab Setup for automatic execution
+
+Add this line to your crontab file (run crontab -e) for running the script every 10 minutes.
+```
+*/10    *       *       *       *       python3 /your/path/ddns.py
+```
