@@ -6,6 +6,8 @@ This script fetches your current public ip from cloudflare (https://cloudflare.c
 
 ## Config setup
 
+Enter the following details in the config.json file.
+
 ```json
 {
   "token": "YOUR_CLOUDFLARE_API_TOKEN",
