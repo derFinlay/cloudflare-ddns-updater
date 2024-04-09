@@ -57,7 +57,6 @@ def update_record(record_id: str, ip: str) -> None:
 
 def main():
     ip = getCurrentIpAddress()
-    print(ip)
     records = get_record_list()
     for record in records:
         update_record(record["id"], ip)
