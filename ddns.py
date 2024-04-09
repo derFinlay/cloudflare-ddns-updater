@@ -56,7 +56,7 @@ def update_record(record_id: str, ip: str) -> None:
                        headers={"Authorization": 'Bearer ' + api_key}, json={"content": ip})
 
 def main():
-    ip = getCurrentIpAddressCF()
+    ip = getCurrentIpAddress()
     print(ip)
     records = get_record_list()
     for record in records:
