@@ -45,18 +45,20 @@ def get_record_list() -> list:
     return update_records
 
 def getCurrentIpAddress() -> str:
-    url = "https://api.ipify.org?format=json"
+    url = "https://api.ipify.org"
     response = requests.get(url)
     ip = response.text
     return ip
 
 def update_record(record_id: str, ip: str) -> None:
     api_key = config["token"]
-    requests.patch('https://api.cloudflare.com/client/v4/zones/' + config["zone"] + '/dns_records/' + record_id,
+    res = requests.patch('https://api.cloudflare.com/client/v4/zones/' + config["zone"] + '/dns_records/' + record_id,
                        headers={"Authorization": 'Bearer ' + api_key}, json={"content": ip})
+    print(res.json())
 
 def main():
     ip = getCurrentIpAddress()
+    print(ip)
     records = get_record_list()
     for record in records:
         update_record(record["id"], ip)
