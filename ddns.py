@@ -52,13 +52,11 @@ def getCurrentIpAddress() -> str:
 
 def update_record(record_id: str, ip: str) -> None:
     api_key = config["token"]
-    res = requests.patch('https://api.cloudflare.com/client/v4/zones/' + config["zone"] + '/dns_records/' + record_id,
+    requests.patch('https://api.cloudflare.com/client/v4/zones/' + config["zone"] + '/dns_records/' + record_id,
                        headers={"Authorization": 'Bearer ' + api_key}, json={"content": ip})
-    print(res.json())
 
 def main():
     ip = getCurrentIpAddress()
-    print(ip)
     records = get_record_list()
     for record in records:
         update_record(record["id"], ip)
