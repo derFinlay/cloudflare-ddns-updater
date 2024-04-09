@@ -25,7 +25,7 @@ def load_config():
         content = configFile.read()
         #convert content to json object
         config = json.loads(content)
-        test_config(c)
+        test_config(config)
         return config
 
 #load configuration file
