@@ -14,11 +14,6 @@ def test_config(c):
         print("Invalid value for skipUpdate in c.json")
         exit(1)
 
-    if c.get("records") is None or c.get("records")[0] is None:
-        print("Invalid value for records in config.json")
-        exit(1)
-
-
 def load_config():
     with open("./config.json", "r") as configFile:
         #read config file contents
