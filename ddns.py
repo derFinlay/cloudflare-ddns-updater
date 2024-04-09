@@ -44,13 +44,10 @@ def get_record_list() -> list:
 
     return update_records
 
-def getCurrentIpAddressCF() -> str:
-    #fetch cloudflare API for ip
-    url = "https://cloudflare.com/cdn-cgi/trace"
+def getCurrentIpAddress() -> str:
+    url = "https://api.ipify.org?format=json"
     response = requests.get(url)
-    data = response.text
-    #only keep the line containing the ip and split it by "=" and take the second part of the split, which is the ip
-    ip = [line for line in data.split("\n") if line.startswith("ip=")][0].split("=")[1]
+    ip = response.text
     return ip
 
 def update_record(record_id: str, ip: str) -> None:
@@ -60,6 +57,7 @@ def update_record(record_id: str, ip: str) -> None:
 
 def main():
     ip = getCurrentIpAddressCF()
+    print(ip)
     records = get_record_list()
     for record in records:
         update_record(record["id"], ip)
