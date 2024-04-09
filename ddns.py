@@ -1,13 +1,31 @@
 import requests
 import json
 
+def test_config(c):
+    if c.get("token") is None or c.get("token") == "":
+        print("Invalid value for API Token in config.json")
+        exit(1)
+        
+    if c.get("zone") is None or c.get("zone") == "":
+        print("Invalid value for zone in c.json")
+        exit(1)
+
+    if c.get("skipUpdate") is None or c.get("skipUpdate") == "":
+        print("Invalid value for skipUpdate in c.json")
+        exit(1)
+
+    if c.get("records") is None or c.get("records")[0] is None:
+        print("Invalid value for records in config.json")
+        exit(1)
+
+
 def load_config():
     with open("./config.json", "r") as configFile:
-        test_config()
         #read config file contents
         content = configFile.read()
         #convert content to json object
         config = json.loads(content)
+        test_config(c)
         return config
 
 #load configuration file
@@ -44,23 +62,6 @@ def update_record(record_id: str, ip: str) -> None:
     api_key = config["token"]
     requests.patch('https://api.cloudflare.com/client/v4/zones/' + config["zone"] + '/dns_records/' + record_id,
                        headers={"Authorization": 'Bearer ' + api_key}, json={"content": ip})
-
-def test_config():
-    if config.get("token") is None or config.get("token") == "":
-        print("Invalid value for API Token in config.json")
-        exit(1)
-        
-    if config.get("zone") is None or config.get("zone") == "":
-        print("Invalid value for zone in config.json")
-        exit(1)
-
-    if config.get("skipUpdate") is None or config.get("skipUpdate") == "":
-        print("Invalid value for skipUpdate in config.json")
-        exit(1)
-
-    if config.get("records") is None or config.get("records")[0] is None:
-        print("Invalid value for records in config.json")
-        exit(1)
 
 def main():
     ip = getCurrentIpAddressCF()
