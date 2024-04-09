@@ -1,5 +1,5 @@
 {
   "token": "CLOUDFLARE_AUTH_TOKEN",
   "zone": "CLOUDFLARE_ZONE_ID",
-  "skipComment": "COMMENT TO SKIP RECORD"
+  "skipUpdate": "COMMENT TO SKIP RECORD"
 }
