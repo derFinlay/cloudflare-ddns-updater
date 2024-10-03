@@ -1,25 +1,20 @@
 # Cloudflare DDNS updater
 
-Use this Python script for dynamicly updating your IP address for multiple Records. This only works when using Cloudflare for your Domain.
+Use this Golang script for dynamicly updating your IP address for multiple Records. This only works when using Cloudflare for your Domain.
 
-This script fetches your current public ip from cloudflare (https://cloudflare.com/cdn-cgi/trace) and updates all defined type "A" records in your Cloudflare DNS settings.
+This script fetches your current public ip from cloudflare (https://cloudflare.com/cdn-cgi/trace) and updates all records in your configured zones (Record needs to have the ddns_comment).
 
 ## Config setup
 
-Enter the following details in the config.json file.
+Enter the following details in the config.yml file. It will be "hot reloaded".
 
-```json
-{
-  "token": "YOUR_CLOUDFLARE_API_TOKEN",
-  "zone": "CLOUDFLARE_DOMAIN_ZONE_ID",
-  "skipUpdate": "COMMENT TO IGNORE THIS RECORD"
-}
+```yaml
+api_key: API_KEY
+ddns_comment: AUTO_DDNS
+update_interval: 5000
+zones:
+    - ZONE_ID
+    - ZONE_ID2
 ```
 
-# Crontab Setup for automatic execution
-
-Add this line to your crontab file (run crontab -e) for running the script every 10 minutes.
-
-```
-*/10    *       *       *       *       python3 /your/path/ddns.py
-```
+Todo: Pointers, asynchronous code

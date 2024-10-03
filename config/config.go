@@ -1,22 +1,26 @@
 package config
 
+import (
+	"os"
+
+	"gopkg.in/yaml.v2"
+)
+
 type Config struct {
-	ApiKey string `yaml:"api_key"`
-	IgnoreComment string `yaml:"ignore_comment"`
-	zones ZoneConfig[] `yaml:"zones"`
+	ApiKey         string   `yaml:"api_key"`
+	DDNSComment    string   `yaml:"ddns_comment"`
+	Zones          []string `yaml:"zones"`
+	UpdateInterval int      `yaml:"update_interval"`
 }
 
-type ZoneConfig struct {
-	Records string[]
-}
-
-func loadConfig() (*Config, error) {
+func LoadConfig() (*Config, error) {
 	config := &Config{}
 	yamlData, err := os.ReadFile("config.yml")
 	if err != nil {
 		return nil, err
 	}
- 	yaml.Unmarshal(yamlData, &config)
+
+	yaml.Unmarshal(yamlData, &config)
 
 	return config, nil
 }
