@@ -77,7 +77,7 @@ func getCurrentIpAddress() (string, error) {
 
 func makeRequest(URL string, API_KEY string) string {
 	client := &http.Client{}
-	req, _ := http.NewRequest("GET", URL, nil)
+	req, _ := http.NewRequest(http.MethodGet, URL, nil)
 	req.Header.Set("Authorization", "Bearer "+API_KEY)
 	res, err := client.Do(req)
 	if err != nil {
@@ -93,7 +93,7 @@ func makeRequest(URL string, API_KEY string) string {
 
 func makePatch(URL string, API_KEY string, data []byte) string {
 	client := &http.Client{}
-	req, _ := http.NewRequest("PATCH", URL, bytes.NewBuffer(data))
+	req, _ := http.NewRequest(http.MethodPatch, URL, bytes.NewBuffer(data))
 	req.Header.Set("Authorization", "Bearer "+API_KEY)
 	res, err := client.Do(req)
 	if err != nil {
