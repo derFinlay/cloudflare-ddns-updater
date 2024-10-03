@@ -55,9 +55,9 @@ func updateRecord(zoneId string, recordId string, newValue string, API_KEY strin
 func getRecordsByZoneId(zoneId string, API_KEY string) ([]Record, error) {
 	res := makeRequest(CLOUDFLARE_API_BASE_URL+"/zones/"+zoneId+"/dns_records", API_KEY)
 
-	resBytes := []byte(res)                   // Converting the string "res" into byte array
-	var jsonRes ZoneRecordsResult             // declaring a map for key names as string and values as interface
-	err := json.Unmarshal(resBytes, &jsonRes) // Unmarshalling
+	resBytes := []byte(res)
+	var jsonRes ZoneRecordsResult
+	err := json.Unmarshal(resBytes, &jsonRes)
 
 	if err != nil {
 		return []Record{}, err
