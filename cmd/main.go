@@ -39,6 +39,11 @@ func main() {
 
 		printConig(c)
 
+		if c.UpdateInterval == 0 {
+			run(c)
+			panic(0)
+		}
+
 		log.Print("Starting Cloudflare Record updates...", time.Now())
 		go run(c)
 
