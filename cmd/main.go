@@ -41,6 +41,7 @@ func main() {
 		printConig(c)
 
 		if c.UpdateInterval == 0 {
+			log.Print("Only update once")
 			run(c)
 			os.Exit(0)
 		}
@@ -152,4 +153,5 @@ func run(config *config.Config) {
 			log.Print("Updated Record " + record.Name)
 		}
 	}
+	log.Print("Records updated")
 }
