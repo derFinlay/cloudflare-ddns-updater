@@ -1,0 +1,5 @@
+api_key: API_KEY
+ddns_comment: AUTO_DDNS
+update_interval: 600
+zones:
+    - ZONEID
