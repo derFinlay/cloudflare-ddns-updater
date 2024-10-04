@@ -1,5 +1,5 @@
 services:
     ddns:
-        build: .
+        image: yalnif/cloudflare-ddns-updater
         volumes:
             - ./config.yml:/ddns/config.yml
