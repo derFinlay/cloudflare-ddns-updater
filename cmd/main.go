@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -41,7 +42,7 @@ func main() {
 
 		if c.UpdateInterval == 0 {
 			run(c)
-			panic(0)
+			os.Exit(0)
 		}
 
 		log.Print("Starting Cloudflare Record updates...", time.Now())
