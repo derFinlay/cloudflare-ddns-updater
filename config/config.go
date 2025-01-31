@@ -1,6 +1,7 @@
 package config
 
 import (
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -42,6 +43,14 @@ func LoadConfig() (*Config, error) {
 	}
 
 	yaml.Unmarshal(yamlData, &config)
-
+	printConfig(config)
 	return config, nil
+}
+
+func printConfig(config *Config) {
+	log.Print("Config:")
+	log.Print("- Zones - ")
+	log.Print(config.Zones)
+	log.Print("- DDNS Comment - ")
+	log.Print(config.DDNSComment)
 }

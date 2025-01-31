@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/derfinlay/ddns/config"
@@ -19,6 +20,7 @@ type Record struct {
 	Comment string `json:"comment"`
 	Content string `json:"content"`
 	Name    string `json:"name"`
+	Zone    string `json:"zone_id"`
 }
 
 type ZoneRecordsResult struct {
@@ -27,6 +29,7 @@ type ZoneRecordsResult struct {
 
 var CLOUDFLARE_API_BASE_URL string = "https://api.cloudflare.com/client/v4/"
 var IP_API_ENDPOINT string = "https://cloudflare.com/cdn-cgi/trace"
+var NUM_ROUTINES int = 5
 
 func main() {
 	for {
@@ -38,29 +41,91 @@ func main() {
 			continue
 		}
 
-		printConig(c)
-
-		if c.UpdateInterval == 0 {
-			log.Print("Only update once")
-			run(c)
-			os.Exit(0)
+		current_IP, err := getCurrentIpAddress()
+		if err != nil {
+			log.Print("Couldn't get current IP address - retrying in 10 seconds")
+			time.Sleep(10 * time.Second)
+			continue
 		}
 
-		log.Print("Starting Cloudflare Record updates...", time.Now())
-		go run(c)
+		log.Print("Current IP: " + current_IP)
 
+		zoneChannel := make(chan string)
+		go func() {
+			for zone := range c.Zones {
+				zoneChannel <- c.Zones[zone]
+			}
+			close(zoneChannel)
+		}()
+
+		log.Print("Starting Cloudflare Record updates...", time.Now())
+
+		wg := sync.WaitGroup{}
+		recordChannel := make(chan Record)
+		for i := 0; i < NUM_ROUTINES; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				for zone := range zoneChannel {
+					log.Print("Getting records for zone: " + zone)
+					records, err := getRecordsByZoneId(zone, c.ApiKey)
+					if err != nil {
+						log.Print("Couldn't get records for zone: " + zone)
+						continue
+					}
+					for _, record := range records {
+						recordChannel <- record
+					}
+				}
+			}()
+		}
+
+		go func() {
+			wg.Wait()
+			close(recordChannel)
+		}()
+
+		var wg2 sync.WaitGroup
+		for i := 0; i < NUM_ROUTINES; i++ {
+			wg2.Add(1)
+			go func() {
+				defer wg2.Done()
+				for record := range recordChannel {
+					if record.Comment != c.DDNSComment {
+						log.Printf("Skipping record %s as it does not match the DDNS comment", record.Name)
+						return
+					}
+
+					if record.Content == current_IP {
+						log.Printf("Skipping record %s as IP address is already up to date", record.Name)
+						return
+					}
+
+					updateRecord(c.Zones[0], record.Id, current_IP, c.ApiKey)
+					log.Print("Updated record " + record.Name + " to " + current_IP)
+				}
+			}()
+		}
+
+		wg2.Wait()
+		log.Print("All records updated")
+
+		if c.UpdateInterval == 0 {
+			os.Exit(0)
+		}
+		log.Print("-----------------------------")
 		time.Sleep(time.Duration(c.UpdateInterval) * time.Second)
 	}
 }
 
-func updateRecord(zoneId string, recordId string, newValue string, API_KEY string) error {
+func updateRecord(zoneId string, recordId string, newValue string, API_KEY string) {
+	log.Print("Updating Record " + recordId + " in Zone " + zoneId + " to " + newValue)
 	body := []byte(`{"content": "` + newValue + `"}`)
-	makePatch(CLOUDFLARE_API_BASE_URL+"/zones/"+zoneId+"/dns_records/"+recordId, API_KEY, body)
-	return nil
+	makeRequest(CLOUDFLARE_API_BASE_URL+"/zones/"+zoneId+"/dns_records/"+recordId, http.MethodPatch, API_KEY, body)
 }
 
 func getRecordsByZoneId(zoneId string, API_KEY string) ([]Record, error) {
-	res := makeRequest(CLOUDFLARE_API_BASE_URL+"/zones/"+zoneId+"/dns_records", API_KEY)
+	res := makeRequest(CLOUDFLARE_API_BASE_URL+"/zones/"+zoneId+"/dns_records", http.MethodGet, API_KEY, nil)
 
 	resBytes := []byte(res)
 	var jsonRes ZoneRecordsResult
@@ -74,7 +139,7 @@ func getRecordsByZoneId(zoneId string, API_KEY string) ([]Record, error) {
 }
 
 func getCurrentIpAddress() (string, error) {
-	response := makeRequest(IP_API_ENDPOINT, "")
+	response := makeRequest(IP_API_ENDPOINT, http.MethodGet, "", nil)
 
 	parts := strings.Split(response, "ip=")
 	ip := strings.Split(parts[1], "\n")[0]
@@ -82,9 +147,9 @@ func getCurrentIpAddress() (string, error) {
 	return ip, nil
 }
 
-func makeRequest(URL string, API_KEY string) string {
+func makeRequest(URL string, method string, API_KEY string, data []byte) string {
 	client := &http.Client{}
-	req, _ := http.NewRequest(http.MethodGet, URL, nil)
+	req, _ := http.NewRequest(method, URL, bytes.NewBuffer(data))
 	req.Header.Set("Authorization", "Bearer "+API_KEY)
 	res, err := client.Do(req)
 	if err != nil {
@@ -96,62 +161,4 @@ func makeRequest(URL string, API_KEY string) string {
 	response := string(resBody)
 
 	return response
-}
-
-func makePatch(URL string, API_KEY string, data []byte) string {
-	client := &http.Client{}
-	req, _ := http.NewRequest(http.MethodPatch, URL, bytes.NewBuffer(data))
-	req.Header.Set("Authorization", "Bearer "+API_KEY)
-	res, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Err is", err)
-	}
-	defer res.Body.Close()
-
-	resBody, _ := io.ReadAll(res.Body)
-	response := string(resBody)
-
-	return response
-}
-
-func printConig(config *config.Config) {
-	log.Print("Config:")
-	log.Print("- Zones - ")
-	log.Print(config.Zones)
-	log.Print("- DDNS Comment - ")
-	log.Print(config.DDNSComment)
-}
-
-func run(config *config.Config) {
-	currentIpAddress, err := getCurrentIpAddress()
-
-	log.Print("Current IP: " + currentIpAddress)
-
-	if err != nil {
-		log.Panic("Couldn't get current IP address - exiting")
-	}
-
-	for _, zone := range config.Zones {
-		records, err := getRecordsByZoneId(zone, config.ApiKey)
-
-		if err != nil {
-			log.Print("Couldn't get records for zone: " + zone)
-			continue
-		}
-
-		for _, record := range records {
-			if record.Comment != config.DDNSComment || record.Content == currentIpAddress {
-				continue
-			}
-
-			err = updateRecord(zone, record.Id, currentIpAddress, config.ApiKey)
-			if err != nil {
-				log.Print("Couldnt update Record " + record.Name)
-				continue
-			}
-
-			log.Print("Updated Record " + record.Name)
-		}
-	}
-	log.Print("Records updated")
 }
