@@ -26,9 +26,9 @@ jobs:
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ GITHUB.REF_NAME }}
+          tag: ${{ github.ref_name }}
         run: |
-          echo "Tag name: ${{ env.GITHUB_REF#refs/tags/ }}"
+          echo "Tag name: $tag"
           gh release create "$GITHUB.REF_NAME" ./cloudflare-ddns-updater.exe ./cloudflare-ddns-updater \
               --repo="$GITHUB_REPOSITORY" \
               --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
