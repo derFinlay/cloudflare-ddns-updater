@@ -29,7 +29,7 @@ jobs:
           tag: ${{ github.ref_name }}
         run: |
           echo "Tag name: $tag"
-          gh release create "$GITHUB.REF_NAME" ./cloudflare-ddns-updater.exe ./cloudflare-ddns-updater \
+          gh release create "$tag" ./cloudflare-ddns-updater.exe ./cloudflare-ddns-updater \
               --repo="$GITHUB_REPOSITORY" \
               --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
               --generate-notes
