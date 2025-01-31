@@ -19,4 +19,7 @@ zones:
     - ZONE_ID2
 ```
 
-Todo: Pointers, asynchronous code
+Todo:
+
+-   Pointers
+-   asynchronous code
