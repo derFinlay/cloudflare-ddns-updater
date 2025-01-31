@@ -15,7 +15,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Build project 
+      - name: Setup Go
+        uses: actions/setup-go@v5.3.0
+        with:
+          go-version: 1.21.4
+      - name: Build project
         run: |
           go build -o cloudflare-ddns-updater ./cmd
           GOOS=windows go build -o cloudflare-ddns-updater.exe ./cmd
@@ -24,6 +28,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ GITHUB.REF_NAME }}
         run: |
+          echo "Tag name: ${{ env.GITHUB_REF#refs/tags/ }}"
           gh release create "$GITHUB.REF_NAME" ./cloudflare-ddns-updater.exe ./cloudflare-ddns-updater \
               --repo="$GITHUB_REPOSITORY" \
               --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
